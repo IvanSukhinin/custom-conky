@@ -1,0 +1,112 @@
+conky.config = {
+    update_interval = 2.0,
+    total_run_times = 0,
+    net_avg_samples = 2,
+    cpu_avg_samples = 2,
+    double_buffer = true,
+    no_buffers = true,
+    use_xft = true,
+    font = 'Ubuntu:size=11',
+    override_utf8_locale = true,
+    default_color = '#cccccc',
+    color0 = '#d1d1d1',
+    color1 = '#65A7CA', -- blue (normal)
+    color2 = 'white',
+    color3 = '#ecf000', -- yellow (warning)
+    color4 = '#f02929', -- red (danger)
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = false,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    own_window_colour = '000000',
+    own_window_argb_visual = true,
+    own_window_argb_value = 145,
+    alignment = 'top_right',
+    gap_x = 10,
+    gap_y = 10,
+    minimum_width = 300, minimum_height = 555,
+    maximum_width = 300,
+    draw_shades = false,
+};
+
+conky.text = [[
+${alignc}${image ~/conky/mint-logo.png -p 28,10 -s 50x50}
+
+${alignc}${font size=14}${color2}${exec lsb_release -ds}${font}
+
+# SYSTEM
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}SYSTEM${color2}
+${voffset -25}_____________${alignr}_____________
+# system info
+$font
+${color1}${alignc}$sysname $kernel $machine
+${voffset 5}${color0}Hostname: ${color1}${goto 130}${nodename}
+${color0}Uptime: ${color1}${goto 130}${uptime}
+${color0}System Updates: ${color1}${goto 130}${execpi 3600 checkupdates | wc -l}  Updates
+
+# CPU
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}CPU${color2}
+${voffset -25}_______________${alignr}_______________
+$font
+${color1}${alignc}${exec cat /proc/cpuinfo | grep 'model name' | sed -e 's/model name.*: //'| uniq}
+# cpu info
+${voffset 5}${color0}CPU : ${if_match ${cpu} < 50}${color1} ${else} ${if_match ${cpu} < 80} ${color3} ${else} ${color4} ${endif} ${endif} ${goto 60}${cpubar 15,240}${color2}${goto 150}${cpu}%${color}
+${color0}Temperature : ${if_match ${hwmon acpitz temp 1} < 50}${color1} ${else} ${if_match ${hwmon acpitz temp 1} < 75} ${color3} ${else} ${color4} ${endif} ${endif}${goto 110}${hwmon acpitz temp 1} °C${color}
+${color0}Frequency : ${color1}${goto 110}${freq_g cpu} GHz
+
+# GPU
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}GPU${color2}
+${voffset -25}_______________${alignr}_______________
+$font
+# gpu info
+${color1}${alignc}${exec nvidia-smi --query-gpu=gpu_name --format=csv,noheader,nounits}
+${voffset 5}${color0}Temperature: ${if_match ${execi 60 nvidia-settings -query [gpu:0]/GPUCoreTemp -t} < 50}${color1} ${else} ${if_match ${execi 60 nvidia-settings -query [gpu:0]/GPUCoreTemp -t} < 70} ${color3} ${else} ${color4} ${endif} ${endif}${goto 110}${execi 60 nvidia-settings -query [gpu:0]/GPUCoreTemp -t}°C
+${color0}Memory: ${goto 110}${color1}${execi 60 nvidia-settings -query [gpu:0]/UsedDedicatedGPUMemory -t}MB/${exec nvidia-settings -query [gpu:0]/TotalDedicatedGPUMemory -t}MB
+
+# Memory
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}Memory${color2}
+${voffset -25}_____________${alignr}_____________
+$font
+# memory info
+${color0}RAM : ${if_match ${memperc} < 50}${color1} ${else} ${if_match ${memperc} < 80} ${color3} ${else} ${color4} ${endif} ${endif} ${goto 60}${membar 15, 125}${color2}${goto 120}$memperc% ${alignr}${mem}/${memmax}
+${color0}Swap : ${goto 60}${color1}${swap}${color0}${color}
+
+# SSD
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}SSD${color2}
+${voffset -25}_______________${alignr}_______________
+$font
+# root
+${color0}Root: ${if_match ${fs_used_perc /} < 50}${color1} ${else} ${if_match ${fs_used_perc /} < 80} ${color3} ${else} ${color4} ${endif} ${endif} ${goto 60} ${fs_bar 15, 115 /} ${goto 110} ${color2} ${fs_used_perc /}% ${alignr} ${fs_used /} / ${fs_size /}
+# home 
+${voffset 2}${color0}Home: ${if_match ${fs_used_perc /home} < 50}${color1} ${else} ${if_match ${fs_used /home} < 80} ${color3} ${else} ${color4} ${endif} ${endif} ${goto 60} ${fs_bar 15, 115 /home} ${goto 110} ${color2} ${fs_used_perc /home}% ${alignr} ${fs_used /home} / ${fs_size /home}
+${color0}SSD Temperature : ${if_match ${hddtemp /dev/sda} < 50}${color1} ${else} ${if_match ${hddtemp /dev/sda} < 80} ${color3} ${else} ${color4} ${endif} ${endif}${goto 140}${hddtemp /dev/sda}.0 °C
+
+# Network
+#header
+${alignc}${font OxygenSans:bold:size=12}${color1}Network${color2}
+${voffset -25}_____________${alignr}_____________
+$font
+# network info
+${color0}Up: ${color1}${goto 60}${upspeed wlp3s0}${goto 205}${color2}${execi 30 vnstat -i wlp3s0 | grep "today" | awk '{print $5 $6}'}
+${color0}Down: ${color1}${goto 60}${downspeed wlp3s0}${goto 205}${color2}${execi 30 vnstat -i wlp3s0 | grep "today" | awk '{print $2 $3}'}
+${color0}WIFI: ${color1}${goto 60}${wireless_essid wlp3s0}${color1}${goto 155}${wireless_link_qual_perc wlp3s0}% ${exec iw dev wlp3s0 link | grep "rx bitrate" | sed "s/[\s\t]*rx bitrate:\s//" | cut -c 1-13}
+
+# Processes
+# header
+${alignc}${font OxygenSans:bold:size=12}${color1}Processes${color2}
+${voffset -25}____________${alignr}____________
+$font
+# processes info
+${goto 145}${color1}PID${goto 200}CPU% ${alignr}MEM%
+${color0}${top name 1}${goto 130}${top pid 1}${goto 200}${top cpu 1}${goto 265}${top mem 1}
+${color0}${top name 2}${goto 130}${top pid 2}${goto 200}${top cpu 2}${goto 265}${top mem 2}
+${color0}${top name 3}${goto 130}${top pid 3}${goto 200}${top cpu 3}${goto 265}${top mem 3}
+${color0}${top name 4}${goto 130}${top pid 4}${goto 200}${top cpu 4}${goto 265}${top mem 4}
+${color0}${top name 5}${goto 130}${top pid 5}${goto 200}${top cpu 5}${goto 265}${top mem 5}
+
+]];
