@@ -30,7 +30,7 @@ conky.config = {
 };
 
 conky.text = [[
-${alignc}${image ~/conky/mint-logo.png -p 28,10 -s 50x50}
+${image ~/custom-conky/mint-logo.png -p 28,10 -s 50x50}
 
 ${alignc}${font size=14}${color2}${exec lsb_release -ds}${font}
 
