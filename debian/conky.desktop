@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Conky
+GenericName=ConkyStartup
+Comment=Start conky on boot
+Exec=/home/hellokitty/custom-conky/debian/startup-conky.sh
+Terminal=false
+Type=Application
